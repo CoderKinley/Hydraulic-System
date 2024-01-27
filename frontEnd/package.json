@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "firebase": "^10.7.2",
+    "plotly": "^1.0.6"
+  }
+}
