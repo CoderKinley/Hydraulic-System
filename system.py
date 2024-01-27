@@ -21,7 +21,13 @@ class MainSystem:
             "appId": "1:229412264516:web:f2fdafadec99efeef23a11",
             "measurementId": "G-PYES5CSJQ7"
         }
-    def connect_firebase(self, data, velocity):
+        
+    def connect_firebase(
+            self, 
+            data, 
+            velocity
+        ):
+
         firebase = pyrebase.initialize_app(self.config)
         database = firebase.database()
 

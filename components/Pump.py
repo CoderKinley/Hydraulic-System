@@ -1,3 +1,5 @@
+import numpy as np
+
 class HydraulicOil:
     def __init__(self, fluid_type):
         self.fluid_type = fluid_type
@@ -34,20 +36,48 @@ class HydraulicOil:
 class HydraulicPump:
     def __init__(
             self,
-            pump_type
+            pump_type,
+            motor_speed,
             ):
     
         self.pump_type = pump_type
-        self.density, self.viscosity, self.bulk_modulus = HydraulicOil(pump_type).fluid_properties
+        self.motor_speed = motor_speed
+
+        self.density, 
+        self.viscosity, 
+        self.bulk_modulus = HydraulicOil(pump_type).fluid_properties
 
     def getOil(self):
         print("hydraulic pump")
         return self.density, self.viscosity, self.bulk_modulus
+    
+    def volume_displacement(
+            self, 
+            gear_outer_dia, 
+            gear_inner_dia, 
+            width
+            ):
+        vdisp = np.pi * width * (np.square(gear_outer_dia) - np.square(gear_inner_dia)) / 4
 
-# def main():
-#     op = HydraulicPump("skydrol_1")
-#     op.getOil()
+        return vdisp
+    
+    def flow_rate(self):
+        gear_outer_dia = 125/1000 # in meters
+        gear_inner_dia = 85/1000 # in meters
+        width = 40/1000 # in meters
+
+        flow_rate = self.volume_displacement(gear_outer_dia, gear_inner_dia, width) * self.motor_speed
+
+        return flow_rate, flow_rate/self.motor_speed
 
 
-# if __name__ == "__main__":
-#     main()
+
+def main():
+    speed = 1500
+    op = HydraulicPump("skydrol_1", speed)
+    op.getOil()
+    print(op.flow_rate())
+
+
+if __name__ == "__main__":
+    main()

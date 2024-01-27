@@ -66,4 +66,11 @@ function updateRealTimeChart(data) {
 
     // Update the chart
     Plotly.update("chart", chartData, [0]);
+
+    // Set dark mode theme
+    Plotly.update("chart", {}, {
+        layout: {
+            template: 'plotly_dark'
+        }
+    });
 }
