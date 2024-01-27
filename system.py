@@ -21,7 +21,7 @@ class MainSystem:
             "appId": "1:229412264516:web:f2fdafadec99efeef23a11",
             "measurementId": "G-PYES5CSJQ7"
         }
-        
+
     def connect_firebase(
             self, 
             data, 
@@ -65,8 +65,10 @@ class MainSystem:
         discharge = 0.0032 # m^3/s
         packingFriction = 0 # N
         timer = self.time_counter
+        motor_speed = 3600 
+        oil_type = "skydrol_1"
 
-        density, viscosity, bulk_modulus = HydraulicPump("skydrol_1").getOil()
+        density, viscosity, bulk_modulus = HydraulicPump(oil_type, motor_speed).getOil()
         
         control_signal = DirectionControlValve(1, density, viscosity).simulation()
         print(control_signal)
