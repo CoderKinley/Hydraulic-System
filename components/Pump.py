@@ -41,16 +41,40 @@ class HydraulicPump:
             self,
             pump_type,
             motor_speed,
+            operating_pressure,
+            load_mass,
+            pump_efficiency_factor
             ):
     
+        self.operating_pressure = operating_pressure
         self.pump_type = pump_type
         self.motor_speed = motor_speed
-        self.acceleration_gravity = 9.81 # m/s2
+        self.load_mass = load_mass
+        self.pump_efficiency_factor = pump_efficiency_factor
 
+        self.acceleration_gravity = 9.81 # m/s2'
         self.density, self.viscosity, self.bulk_modulus = HydraulicOil(pump_type).fluid_properties
 
+    def simulate(self, on_signal):
+        if (on_signal):
+            flow_rate = self.flow_rate()
+            pressure_out = self.operating_pressure
+            
+            return flow_rate, pressure_out
+
+        elif (not on_signal):
+            flow_rate = 0
+            pressure_out = 0
+            
+            return flow_rate, pressure_out
+        
+        else:
+            print("error in signal")
+
+
     def getOil(self):
-        print("hydraulic pump")
+        print("hydraulic pump oil function")
+
         return self.density, self.viscosity, self.bulk_modulus
     
     def volume_displacement(
@@ -69,27 +93,33 @@ class HydraulicPump:
         gear_inner_dia = 85/1000 # in meters
         width = 40/1000 # in meters 
         flow_rate = self.volume_displacement(gear_outer_dia, gear_inner_dia, width) * self.motor_speed # m3/min
-        flow_rate_lpm = flow_rate * 1000 # converted to lpm
+        theoratical_flow_rate = flow_rate * 1000 # converted to lpm
+        actual_flow_rate = theoratical_flow_rate * self.pump_efficiency_factor
 
-        return flow_rate_lpm
+        return  actual_flow_rate
 
-    def force(self, mass):
-        force = mass * self.acceleration_gravity
-        
-        return force
+    # acceleration of the pistion retraction or extensdion can be calcularted
+    # def acceleration(self, mass):
+    #     # using the newton second law of motion
+    #     force = mass * self.acceleration_gravity
+
+    #     return force
     
-    def pressure(self, area):
-        mass = 1000
-        pressure = self.force(mass)/ area
-
-        return pressure
+    def required_force(self, area):
+        # uses commonly in fluid mechanics
+        force = area * self.operating_pressure
+        return force
 
 def main():
+    # required system pressure in the Tala hydro power project
+    operating_pressure = 7845320 # in pascals
     speed = 3000
-    op = HydraulicPump("skydrol_1", speed)
+    efficiency = 0.85
+    mass =  50000 # in KG
+    op = HydraulicPump("skydrol_1", speed, operating_pressure, mass, efficiency)
     op.getOil()
     print(str(op.flow_rate()) + " lpm")
-    print(op.pressure(0.094))
+    print(str(op.required_force(0.1)) + " Newtons")
 
 
 if __name__ == "__main__":

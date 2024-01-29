@@ -22,21 +22,19 @@ class MainSystem:
             "measurementId": "G-PYES5CSJQ7"
         }
 
-    def connect_firebase(
-            self, 
-            data, 
-            velocity
-        ):
+    def connect_firebase(self, data, velocity):
+        try:
+            firebase = pyrebase.initialize_app(self.config)
+            database = firebase.database()
 
-        firebase = pyrebase.initialize_app(self.config)
-        database = firebase.database()
+            piston_data = {"Piston_extension": data, "velocity": velocity}
 
-        piston_data = {"Piston_extension": data, "velocity": velocity}
+            database.push(piston_data)
+            print("piston extension: " + str(data) + " Velocity: " + str(velocity))
+            print("pushed to firebase...")
 
-        database.push(piston_data)
-        print("piston extension: "+str(data)+" Velocity: " + str(velocity))
-        print("pushed to firebase...")
-
+        except Exception as e:
+            print("An error occurred:", str(e))
 
     def on_key_event(self, e):
         if e.event_type == keyboard.KEY_DOWN:
@@ -61,18 +59,44 @@ class MainSystem:
         stroke_length = 0.6 # m maximum length the pistion rod extends
         initial_position = 0 # m initial position of the piston
         simulation_time = 0.25 # s
-        operating_pressure = 45e6 # Pa
         discharge = 0.0032 # m^3/s
         packingFriction = 0 # N
         timer = self.time_counter
         motor_speed = 3600 
         oil_type = "skydrol_1"
+        operating_pressure = 7845320 # in pascals
 
-        density, viscosity, bulk_modulus = HydraulicPump(oil_type, motor_speed).getOil()
+    
+        efficiency = 0.85
+        mass =  50000 # in KG
+        pump_ON = True
+
+        left_solenoid = 1
+        right_solenoid = 0
+
+        # Calling the pump function
+        pump = HydraulicPump(            
+            oil_type, 
+            motor_speed, 
+            operating_pressure, 
+            mass, efficiency
+            )
+
+        density, viscosity, bulk_modulus = pump.getOil()
         
-        control_signal = DirectionControlValve(1, density, viscosity).simulation()
-        print(control_signal)
+        flow_rate, pump_pressure = pump.simulate(pump_ON)
+        print(flow_rate, pump_pressure)
         
+        # calling the direction control valve function
+        dcv = DirectionControlValve(
+            density, 
+            viscosity, 
+            pump_pressure, 
+            flow_rate
+            )
+        dcv.simulate(left_solenoid, right_solenoid)
+        
+        #  calling the hydarulic actuator signal
         hs = HydarulicActuator(
             bore_diameter,
             rod_diameter,
