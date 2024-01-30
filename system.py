@@ -30,7 +30,7 @@ class MainSystem:
             piston_data = {"Piston_extension": data, "velocity": velocity}
 
             database.push(piston_data)
-            print("piston extension: " + str(data) + " Velocity: " + str(velocity))
+            # print("piston extension: " + str(data) + " Velocity: " + str(velocity))
             print("pushed to firebase...")
 
         except Exception as e:
@@ -52,6 +52,7 @@ class MainSystem:
 
             self.connect_firebase(disp, self.time_counter)
 
+    # just the bypass logic
     def bypass_valves(self):
          #test for hydraulic double acting actuator
         bore_diameter = 0.094 # m
@@ -83,9 +84,7 @@ class MainSystem:
             )
 
         density, viscosity, bulk_modulus = pump.getOil()
-        
         flow_rate, pump_pressure = pump.simulate(pump_ON)
-        print(flow_rate, pump_pressure)
         
         # calling the direction control valve function
         dcv = DirectionControlValve(
@@ -94,7 +93,8 @@ class MainSystem:
             pump_pressure, 
             flow_rate
             )
-        dcv.simulate(left_solenoid, right_solenoid)
+        
+        port = dcv.simulate(left_solenoid, right_solenoid)
         
         #  calling the hydarulic actuator signal
         hs = HydarulicActuator(
@@ -107,9 +107,10 @@ class MainSystem:
             density,
             discharge,
             packingFriction,
-            timer
-
+            timer, 
+            port
         )
+        hs.simulate
         return hs.displacementExt(self.time_counter)
 
 def main():

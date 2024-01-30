@@ -1,4 +1,6 @@
 import numpy as np
+import time
+from components.DirectionControlValve import DirectionControlValve
 
 class HydarulicActuator:
     def __init__(
@@ -12,7 +14,8 @@ class HydarulicActuator:
             oil_flow_pressure,
             flow_rate,
             packingFriction,
-            time
+            time_instant,
+            port
             ):
         
         self.bore_diameter = bore_diameter
@@ -24,10 +27,42 @@ class HydarulicActuator:
         self.oil_flow_pressure = oil_flow_pressure
         self.flow_rate = flow_rate
         self.packingFriction = packingFriction
-        self.time = time
+        self.time_instant = time_instant
+
         self.position_data = {}
-        self.max_position = 0
-    
+        self.final_position_value = 0
+
+        self.simulate = self.simulate(port)
+
+    def simulate(self, port):
+        # deconstruct and logic for the working of the double acting cylidner
+        port_a_flow = port[0].get("flow_rate")
+        port_a_pressure = port[0].get("pressure")
+        port_b_flow = port[1].get("flow_rate")
+        port_b_pressure = port[1].get("pressure")
+
+        # printng the output of the current cyulinder location
+        print("final position of cylinder --> ", self.final_position_value)
+
+        if(port_a_flow > port_b_flow and port_a_pressure > port_b_pressure):
+            q = self.massFlowRateExt()
+            f_extension = self.extensionForce()
+            v_extension = self.pistonVelocityExt()
+            power_input = self.powerInputExt()
+            power_output= self.powerOutputExt()
+            displacement = self.displacementExt(self.time_instant)
+
+            return displacement, q, f_extension, v_extension, power_input, power_output
+        
+        elif(port_a_flow < port_b_flow and port_a_pressure < port_b_pressure):
+            f_retraction = self.retractionForce()
+            v_retraction = self.pistonVelocityRet()
+            power_input = self.powerInputRet()
+            power_output = self.powerOutputRet()
+            displacement = self.displacementRet(self.time_instant)
+
+            return displacement, q, f_retraction, v_retraction, power_input, power_output        
+            
     def extensionForce(self):
         force_extension = self.operating_pressure *(np.pi * pow(self.bore_diameter/2, 2)) #in newtons
         return force_extension
@@ -35,7 +70,7 @@ class HydarulicActuator:
     def massFlowRateExt(self):
          # massflow rate (m) = PAV
         mass_flow_rate = self.oil_flow_pressure * self.flow_rate
-        print("Massflr = " + str(mass_flow_rate) + " kg/s")
+        # print("Massflr = " + str(mass_flow_rate) + " kg/s")
         return mass_flow_rate
         
     def pistonVelocityExt(self):
@@ -85,10 +120,17 @@ class HydarulicActuator:
         
     # calculating the position of th top of the pistion during the extension phase
     def displacementExt(self, timeinstant):
-        disp = self.pistonVelocityExt() * timeinstant
-        return disp
-    
+        if (self.final_position_value >= 0 and self.final_position_value <= self.stroke_length):
+            disp = self.pistonVelocityExt() * timeinstant
+            self.final_position_value = disp
+            return disp
+        
+
     def displacementRet(self, time_instant):
-        disp = self.pistonVelocityRet() * time_instant
-        # print(disp)
-        return disp
+        if (self.final_position_value == 0):
+            pass
+
+        elif(self.final_position_value == self.stroke_length and self.final_position_value > 0):
+            disp = self.pistonVelocityRet() * time_instant
+            self.final_position_value = disp
+            return disp

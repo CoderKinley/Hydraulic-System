@@ -5,3 +5,7 @@
 
 ## calculating the pressure drop across the pump
 ![Alt text](others/image-1.png)
+
+
+## Bernoulli's equaton
+![Alt text](image.png)

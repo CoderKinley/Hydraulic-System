@@ -21,10 +21,10 @@ class DirectionControlValve:
             ):
         
         if (left_solenoid_signal == 1 and right_solenoid_signal == 0):
-            self.extension()
+            return self.extension()
 
         elif (left_solenoid_signal == 0 and right_solenoid_signal == 1):
-            self.retraction()
+            return self.retraction()
 
         elif (left_solenoid_signal == right_solenoid_signal):
             print("both signal can't be high")        
@@ -33,14 +33,12 @@ class DirectionControlValve:
             print("invalid signal")    
         
     def extension(self):
-        print("extending")
         port_a = {"flow_rate" : self.flow_rate, "pressure" : self.pressure} 
         port_b = {"flow_rate" : 0, "pressure" : 0}
 
         return port_a, port_b
 
     def retraction(self): 
-        print("retracting")
         port_a= {"flow_rate" : 0, "pressure" : 0}
         port_b = {"flow_rate" : self.flow_rate, "pressure" : self.pressure}
             
