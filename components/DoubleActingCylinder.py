@@ -1,6 +1,4 @@
 import numpy as np
-import time
-from components.DirectionControlValve import DirectionControlValve
 
 class HydarulicActuator:
     def __init__(
@@ -15,7 +13,9 @@ class HydarulicActuator:
             flow_rate,
             packingFriction,
             time_instant,
-            port
+            port,
+            event_time_instant,
+            current_stroke_position
             ):
         
         self.bore_diameter = bore_diameter
@@ -28,10 +28,10 @@ class HydarulicActuator:
         self.flow_rate = flow_rate
         self.packingFriction = packingFriction
         self.time_instant = time_instant
+        self.event_time_instant = event_time_instant
+        self.current_stroke_position = current_stroke_position
 
         self.position_data = {}
-        self.final_position_value = 0
-
         self.simulate = self.simulate(port)
 
     def simulate(self, port):
@@ -41,25 +41,23 @@ class HydarulicActuator:
         port_b_flow = port[1].get("flow_rate")
         port_b_pressure = port[1].get("pressure")
 
-        # printng the output of the current cyulinder location
-        print("final position of cylinder --> ", self.final_position_value)
-
         if(port_a_flow > port_b_flow and port_a_pressure > port_b_pressure):
             q = self.massFlowRateExt()
             f_extension = self.extensionForce()
             v_extension = self.pistonVelocityExt()
             power_input = self.powerInputExt()
             power_output= self.powerOutputExt()
-            displacement = self.displacementExt(self.time_instant)
+            displacement = self.displacementExt(self.event_time_instant)
 
             return displacement, q, f_extension, v_extension, power_input, power_output
         
         elif(port_a_flow < port_b_flow and port_a_pressure < port_b_pressure):
+            q = self.massFlowRateExt()
             f_retraction = self.retractionForce()
             v_retraction = self.pistonVelocityRet()
             power_input = self.powerInputRet()
             power_output = self.powerOutputRet()
-            displacement = self.displacementRet(self.time_instant)
+            displacement = self.displacementRet(self.event_time_instant)
 
             return displacement, q, f_retraction, v_retraction, power_input, power_output        
             
@@ -72,7 +70,8 @@ class HydarulicActuator:
         mass_flow_rate = self.oil_flow_pressure * self.flow_rate
         # print("Massflr = " + str(mass_flow_rate) + " kg/s")
         return mass_flow_rate
-        
+
+    # important function to determine the postion of the extension  piston in meters
     def pistonVelocityExt(self):
         # velocity = self.stroke_length / self.simulation_time #just calculating
         velocity = self.flow_rate / (np.pi * (pow(self.bore_diameter/2, 2)))
@@ -98,11 +97,13 @@ class HydarulicActuator:
 
     def retractionForce(self):
         force_retraction = self.operating_pressure * (np.pi*(pow(self.bore_diameter/2, 2) - pow(self.rod_diameter/2, 2)))
-        print("retraction force = "+ str(force_retraction)+" N")
+        # print("retraction force = "+ str(force_retraction)+" N")
         return force_retraction
-        
+
+    # important  function as it defines the postion of the piston head during the retraction  
     def pistonVelocityRet(self):
-        velocity = self.flow_rate / ((np.pi * pow(self.bore_diameter/2, 2))-(np.pi * pow(self.rod_diameter/2, 2))) 
+        velocity = self.flow_rate / ((np.pi * pow(self.bore_diameter/2, 2))-(np.pi * pow(self.rod_diameter/2, 2))) # m/s
+        # print("return velocity ---------->", velocity)
         return velocity
         
     def powerInputRet(self):
@@ -119,18 +120,23 @@ class HydarulicActuator:
         return eff
         
     # calculating the position of th top of the pistion during the extension phase
-    def displacementExt(self, timeinstant):
-        if (self.final_position_value >= 0 and self.final_position_value <= self.stroke_length):
-            disp = self.pistonVelocityExt() * timeinstant
-            self.final_position_value = disp
+    def displacementExt(self, time_instant):
+        position = self.pistonVelocityExt() * time_instant
+        if ( position >= 0 and position <= self.stroke_length):
+            disp = self.pistonVelocityExt() * time_instant
             return disp
-        
-
+        elif (position >= self.stroke_length):
+            disp = self.stroke_length
+            return disp
+            
     def displacementRet(self, time_instant):
-        if (self.final_position_value == 0):
-            pass
+        if (self.current_stroke_position <= 0):
+            # print("im hre")
+            disp = 0
+            return disp
 
-        elif(self.final_position_value == self.stroke_length and self.final_position_value > 0):
-            disp = self.pistonVelocityRet() * time_instant
-            self.final_position_value = disp
+        elif(self.current_stroke_position > 0):
+            # print("im here")
+            disp = self.stroke_length - (self.pistonVelocityRet() * time_instant)
+            # print("disp--->", disp)
             return disp

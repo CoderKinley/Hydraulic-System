@@ -73,8 +73,7 @@ class HydraulicPump:
 
 
     def getOil(self):
-        print("hydraulic pump oil function")
-
+        # print("hydraulic pump oil function")
         return self.density, self.viscosity, self.bulk_modulus
     
     def volume_displacement(

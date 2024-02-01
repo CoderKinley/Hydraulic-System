@@ -5,10 +5,15 @@ import keyboard
 import pyrebase
 import time
 
+keypress_val = 0
 class MainSystem:
     def __init__(self):
         self.time_counter = 0
+        self.event_time = 0
         self.terminating_flag = False
+        self.left_solenoid_sig = 1
+        self.right_solenoid_sig = 0
+        self.stroke_position = 0
 
         # initilising the required data for uploading the data
         self.config = {
@@ -26,15 +31,13 @@ class MainSystem:
         try:
             firebase = pyrebase.initialize_app(self.config)
             database = firebase.database()
-
             piston_data = {"Piston_extension": data, "velocity": velocity}
-
             database.push(piston_data)
             # print("piston extension: " + str(data) + " Velocity: " + str(velocity))
             print("pushed to firebase...")
 
         except Exception as e:
-            print("An error occurred:", str(e))
+            print("error! ", str(e))
 
     def on_key_event(self, e):
         if e.event_type == keyboard.KEY_DOWN:
@@ -42,15 +45,48 @@ class MainSystem:
                 print("\nTerminating the loop.")
                 self.terminating_flag = True
 
+        if e.event_type == keyboard.KEY_DOWN:
+            if e.name == '1':
+                # print("pressed 1")
+                self.event_time = 0
+                self.left_solenoid_sig = 1
+                self.right_solenoid_sig = 0
+                
+            elif e.name == '0':
+                # print("pressed 0") 
+                self.event_time = 0  
+                self.left_solenoid_sig = 0
+                self.right_solenoid_sig = 1
+
+            elif e.name.lower() == 'd':
+                self.remove_all_data()    
+
+    def remove_all_data(self):
+        try:
+            firebase = pyrebase.initialize_app(self.config)
+            database= firebase.database()
+            database.remove()
+            print("All data removed from Firebase")
+        except Exception as e:
+            print("Error while removing data from Firebase: ", str(e))
+
     def run(self):
         keyboard.hook(self.on_key_event)
-        
         while not self.terminating_flag:
-            self.time_counter += 0.25
-            time.sleep(0.25)
-            disp = self.bypass_valves()
-
-            self.connect_firebase(disp, self.time_counter)
+            # couter_val must support 0.25/2 ........
+            # every 1second it will send 64 data
+            counter_val = 0.0625
+            self.time_counter += counter_val
+            self.event_time += counter_val
+            print("Time value--> ", self.event_time)
+            time.sleep(counter_val)
+            
+            # connecting the bypass valve to the system
+            displacement, q, f_extension, v_extension, power_input, power_output = self.bypass_valves()
+           
+            # for setting the current postion of the piston stroke
+            self.stroke_position = displacement 
+            self.connect_firebase(displacement, self.time_counter)
 
     # just the bypass logic
     def bypass_valves(self):
@@ -67,13 +103,9 @@ class MainSystem:
         oil_type = "skydrol_1"
         operating_pressure = 7845320 # in pascals
 
-    
         efficiency = 0.85
         mass =  50000 # in KG
         pump_ON = True
-
-        left_solenoid = 1
-        right_solenoid = 0
 
         # Calling the pump function
         pump = HydraulicPump(            
@@ -92,9 +124,9 @@ class MainSystem:
             viscosity, 
             pump_pressure, 
             flow_rate
-            )
-        
-        port = dcv.simulate(left_solenoid, right_solenoid)
+        )
+
+        port = dcv.simulate(self.left_solenoid_sig, self.right_solenoid_sig)
         
         #  calling the hydarulic actuator signal
         hs = HydarulicActuator(
@@ -108,10 +140,12 @@ class MainSystem:
             discharge,
             packingFriction,
             timer, 
-            port
+            port,
+            self.event_time, # from global variable at top
+            self.stroke_position # determines the current positon
         )
-        hs.simulate
-        return hs.displacementExt(self.time_counter)
+
+        return hs.simulate
 
 def main():
     main_system = MainSystem()
