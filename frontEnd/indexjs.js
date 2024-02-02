@@ -51,12 +51,12 @@ function updateRealTimeChart(data) {
     const timeArray = [];
     const pistonExtensionArray = [];
 
-    // Assuming 0.25s intervals and maintaining the order of data
+    // Assuming 0.0625s intervals and maintaining the order of data
     let currentTime = 0;
     Object.keys(data).forEach(key => {
         timeArray.push(currentTime);
         pistonExtensionArray.push(data[key].Piston_extension);
-        currentTime += 0.25;  // Increment time for each data point
+        currentTime += 0.0625;  // Increment time for each data point
     });
 
     const chartData = {
@@ -66,11 +66,4 @@ function updateRealTimeChart(data) {
 
     // Update the chart
     Plotly.update("chart", chartData, [0]);
-
-    // Set dark mode theme
-    Plotly.update("chart", {}, {
-        layout: {
-            template: 'plotly_dark'
-        }
-    });
 }

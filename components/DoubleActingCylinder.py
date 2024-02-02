@@ -15,7 +15,10 @@ class HydarulicActuator:
             time_instant,
             port,
             event_time_instant,
-            current_stroke_position
+            current_stroke_position,
+            signal_flag_ext,
+            signal_flag_ret,
+            last_stroke_position
             ):
         
         self.bore_diameter = bore_diameter
@@ -30,7 +33,9 @@ class HydarulicActuator:
         self.time_instant = time_instant
         self.event_time_instant = event_time_instant
         self.current_stroke_position = current_stroke_position
-
+        self.signal_flag_ext = signal_flag_ext
+        self.last_stroke_position = last_stroke_positions
+        self.signal_flag_ret = signal_flag_ret
         self.position_data = {}
         self.simulate = self.simulate(port)
 
@@ -48,7 +53,8 @@ class HydarulicActuator:
             power_input = self.powerInputExt()
             power_output= self.powerOutputExt()
             displacement = self.displacementExt(self.event_time_instant)
-
+            if (displacement > self.stroke_length):
+                displacement = self.stroke_length
             return displacement, q, f_extension, v_extension, power_input, power_output
         
         elif(port_a_flow < port_b_flow and port_a_pressure < port_b_pressure):
@@ -58,7 +64,8 @@ class HydarulicActuator:
             power_input = self.powerInputRet()
             power_output = self.powerOutputRet()
             displacement = self.displacementRet(self.event_time_instant)
-
+            if (displacement < 0):
+                displacement  = 0
             return displacement, q, f_retraction, v_retraction, power_input, power_output        
             
     def extensionForce(self):
@@ -121,10 +128,15 @@ class HydarulicActuator:
         
     # calculating the position of th top of the pistion during the extension phase
     def displacementExt(self, time_instant):
-        position = self.pistonVelocityExt() * time_instant
-        if ( position >= 0 and position <= self.stroke_length):
-            disp = self.pistonVelocityExt() * time_instant
+        position = self.current_stroke_position
+        print("position ---> ", position)
+        if ( position >= 0 and position < self.stroke_length):
+            if (self.signal_flag_ext):
+                disp = self.last_stroke_position + (self.pistonEfficiencyExt() * time_instant)
+            else:
+                disp = self.pistonVelocityExt() * time_instant
             return disp
+        
         elif (position >= self.stroke_length):
             disp = self.stroke_length
             return disp
@@ -137,6 +149,9 @@ class HydarulicActuator:
 
         elif(self.current_stroke_position > 0):
             # print("im here")
-            disp = self.stroke_length - (self.pistonVelocityRet() * time_instant)
+            if (self.signal_flag_ret and self.current_stroke_position < self.stroke_length):
+                disp = self.last_stroke_position - (self.pistonVelocityRet() * time_instant)
+            else:
+                disp = self.stroke_length - (self.pistonVelocityRet() * time_instant)
             # print("disp--->", disp)
             return disp

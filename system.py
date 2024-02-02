@@ -10,10 +10,13 @@ class MainSystem:
     def __init__(self):
         self.time_counter = 0
         self.event_time = 0
-        self.terminating_flag = False
         self.left_solenoid_sig = 1
         self.right_solenoid_sig = 0
         self.stroke_position = 0
+        self.last_stroke_position = 0
+        self.terminating_flag = False
+        self.signal_flag_dac_bp_ext = False
+        self.signal_flag_dac_bp_ret = False
 
         # initilising the required data for uploading the data
         self.config = {
@@ -39,6 +42,7 @@ class MainSystem:
         except Exception as e:
             print("error! ", str(e))
 
+    # just a keyboard functionality which will be replaced by the input data form the frontend
     def on_key_event(self, e):
         if e.event_type == keyboard.KEY_DOWN:
             if e.name.lower() == 'esc':
@@ -51,12 +55,19 @@ class MainSystem:
                 self.event_time = 0
                 self.left_solenoid_sig = 1
                 self.right_solenoid_sig = 0
+                self.last_stroke_position = self.stroke_position
+                self.signal_flag_dac_bp_ext = True
+                self.signal_flag_dac_bp_ret = False
+                
                 
             elif e.name == '0':
                 # print("pressed 0") 
                 self.event_time = 0  
                 self.left_solenoid_sig = 0
                 self.right_solenoid_sig = 1
+                self.last_stroke_position = self.stroke_position
+                self.signal_flag_dac_bp_ret = True
+                self.signal_flag_dac_bp_ext = False
 
             elif e.name.lower() == 'd':
                 self.remove_all_data()    
@@ -90,7 +101,7 @@ class MainSystem:
 
     # just the bypass logic
     def bypass_valves(self):
-         #test for hydraulic double acting actuator
+        #test for hydraulic double acting actuator
         bore_diameter = 0.094 # m
         rod_diameter = 0.016 # mcls
         stroke_length = 0.6 # m maximum length the pistion rod extends
@@ -142,7 +153,10 @@ class MainSystem:
             timer, 
             port,
             self.event_time, # from global variable at top
-            self.stroke_position # determines the current positon
+            self.stroke_position, # determines the current positon
+            self.signal_flag_dac_bp_ext,
+            self.signal_flag_dac_bp_ret, 
+            self.last_stroke_position
         )
 
         return hs.simulate
