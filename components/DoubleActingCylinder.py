@@ -34,7 +34,7 @@ class HydarulicActuator:
         self.event_time_instant = event_time_instant
         self.current_stroke_position = current_stroke_position
         self.signal_flag_ext = signal_flag_ext
-        self.last_stroke_position = last_stroke_positions
+        self.last_stroke_position = last_stroke_position
         self.signal_flag_ret = signal_flag_ret
         self.position_data = {}
         self.simulate = self.simulate(port)
@@ -53,6 +53,7 @@ class HydarulicActuator:
             power_input = self.powerInputExt()
             power_output= self.powerOutputExt()
             displacement = self.displacementExt(self.event_time_instant)
+
             if (displacement > self.stroke_length):
                 displacement = self.stroke_length
             return displacement, q, f_extension, v_extension, power_input, power_output
@@ -64,6 +65,7 @@ class HydarulicActuator:
             power_input = self.powerInputRet()
             power_output = self.powerOutputRet()
             displacement = self.displacementRet(self.event_time_instant)
+            
             if (displacement < 0):
                 displacement  = 0
             return displacement, q, f_retraction, v_retraction, power_input, power_output        
@@ -80,9 +82,12 @@ class HydarulicActuator:
 
     # important function to determine the postion of the extension  piston in meters
     def pistonVelocityExt(self):
+        if (self.signal_flag_ext):
         # velocity = self.stroke_length / self.simulation_time #just calculating
-        velocity = self.flow_rate / (np.pi * (pow(self.bore_diameter/2, 2)))
-        return velocity
+            velocity = self.flow_rate / (np.pi * (pow(self.bore_diameter/2, 2)))
+            return velocity
+        else:
+            return 0
 
     def powerInputExt(self):
         power_in = self.operating_pressure * self.flow_rate
@@ -109,10 +114,12 @@ class HydarulicActuator:
 
     # important  function as it defines the postion of the piston head during the retraction  
     def pistonVelocityRet(self):
-        velocity = self.flow_rate / ((np.pi * pow(self.bore_diameter/2, 2))-(np.pi * pow(self.rod_diameter/2, 2))) # m/s
-        # print("return velocity ---------->", velocity)
-        return velocity
-        
+        if (self.signal_flag_ret):
+            velocity = self.flow_rate / ((np.pi * pow(self.bore_diameter/2, 2))-(np.pi * pow(self.rod_diameter/2, 2))) # m/s
+            # print("return velocity ---------->", velocity)
+            return velocity
+        else:
+            return 0
     def powerInputRet(self):
         power_in = self.operating_pressure * self.flow_rate
         return power_in

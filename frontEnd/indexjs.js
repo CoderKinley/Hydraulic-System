@@ -30,6 +30,7 @@ onValue(ref(database), (snapshot) => {
         // updateRealTimeDataTable(data);
         // Update the chart with real-time data
         updateRealTimeChart(data);
+        console.log(data)
     }
     else {
         console.log("No data found in Realtime Database");
@@ -50,8 +51,8 @@ Plotly.plot("chart", [{
 function updateRealTimeChart(data) {
     const timeArray = [];
     const pistonExtensionArray = [];
-
-    // Assuming 0.0625s intervals and maintaining the order of data
+    
+    // console.log(Object.keys(data))
     let currentTime = 0;
     Object.keys(data).forEach(key => {
         timeArray.push(currentTime);

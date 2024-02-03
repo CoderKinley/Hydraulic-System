@@ -1,10 +1,5 @@
-# Formula for pump
+# Hydarulic simulation for Tala Hydro power project
 
-## calculating the flow rate
-![Alt text](others/image-3.png)
-
-## calculating the pressure drop across the pump
-![Alt text](others/image-1.png)
-
-## Bernoulli's equaton
-![Alt text](image.png)
+## MIV logic
+First need to run the system.py file to run the system.
+Next run the frontend >> index.js to see the data visualisation

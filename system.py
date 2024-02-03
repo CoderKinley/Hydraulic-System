@@ -10,8 +10,8 @@ class MainSystem:
     def __init__(self):
         self.time_counter = 0
         self.event_time = 0
-        self.left_solenoid_sig = 1
-        self.right_solenoid_sig = 0
+        self.left_solenoid_sig = 0
+        self.right_solenoid_sig = 1
         self.stroke_position = 0
         self.last_stroke_position = 0
         self.terminating_flag = False
@@ -30,11 +30,28 @@ class MainSystem:
             "measurementId": "G-PYES5CSJQ7"
         }
 
-    def connect_firebase(self, data, velocity):
+    def connect_firebase(
+            self, 
+            p_extension, 
+            velocity,
+            flow_rate, 
+            f_extension, 
+            power_input, 
+            power_output
+        ):
+        
         try:
             firebase = pyrebase.initialize_app(self.config)
             database = firebase.database()
-            piston_data = {"Piston_extension": data, "velocity": velocity}
+            piston_data = {
+                "Piston_extension": p_extension, 
+                "velocity": velocity, 
+                "flow_rate" : flow_rate, 
+                "force_extension": f_extension, 
+                "power_input" : power_input, 
+                "power_output" : power_output 
+            }
+
             database.push(piston_data)
             # print("piston extension: " + str(data) + " Velocity: " + str(velocity))
             print("pushed to firebase...")
@@ -58,7 +75,6 @@ class MainSystem:
                 self.last_stroke_position = self.stroke_position
                 self.signal_flag_dac_bp_ext = True
                 self.signal_flag_dac_bp_ret = False
-                
                 
             elif e.name == '0':
                 # print("pressed 0") 
@@ -97,7 +113,7 @@ class MainSystem:
            
             # for setting the current postion of the piston stroke
             self.stroke_position = displacement 
-            self.connect_firebase(displacement, self.time_counter)
+            self.connect_firebase(displacement, v_extension, q, f_extension, power_input, power_output)
 
     # just the bypass logic
     def bypass_valves(self):
