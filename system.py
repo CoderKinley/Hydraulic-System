@@ -1,9 +1,11 @@
-from components.Pump import HydraulicPump
-from components.DirectionControlValve import DirectionControlValve
-from components.DoubleActingCylinder import HydarulicActuator
+from MIV_System.components.Pump import HydraulicPump
+from MIV_System.components.DirectionControlValve import DirectionControlValve
+from MIV_System.components.DoubleActingCylinder import HydarulicActuator
 import keyboard
 import pyrebase
 import time
+import paho.mqtt.publish as publish
+import paho.mqtt.subscribe as subscribe
 
 keypress_val = 0
 class MainSystem:
@@ -29,6 +31,15 @@ class MainSystem:
             "appId": "1:229412264516:web:f2fdafadec99efeef23a11",
             "measurementId": "G-PYES5CSJQ7"
         }
+    # To subscribe to a topic in the mqtt for the receiving of the command from the front end side
+    def subscribe_mqtt(self):
+        while True:
+            # check for the changes in the front end
+            commandMqtt = subscribe.simple("MQTTCommand", hostname="202.144.139.110")
+            strMQtt = str(commandMqtt.payload)
+            splitMqtt = strMQtt[2:-1]
+            print(strMQtt)
+            return splitMqtt
 
     def connect_firebase(
             self, 
@@ -43,6 +54,7 @@ class MainSystem:
         try:
             firebase = pyrebase.initialize_app(self.config)
             database = firebase.database()
+
             piston_data = {
                 "Piston_extension": p_extension, 
                 "velocity": velocity, 
@@ -88,6 +100,7 @@ class MainSystem:
             elif e.name.lower() == 'd':
                 self.remove_all_data()    
 
+    # remove the data from firebase
     def remove_all_data(self):
         try:
             firebase = pyrebase.initialize_app(self.config)
@@ -97,6 +110,7 @@ class MainSystem:
         except Exception as e:
             print("Error while removing data from Firebase: ", str(e))
 
+    # Function to start calling the individual components and start running
     def run(self):
         keyboard.hook(self.on_key_event)
         while not self.terminating_flag:
@@ -107,10 +121,16 @@ class MainSystem:
             self.event_time += counter_val
             print("Time value--> ", self.event_time)
             time.sleep(counter_val)
-            
+                        
             # connecting the bypass valve to the system
             displacement, q, f_extension, v_extension, power_input, power_output = self.bypass_valves()
-           
+            
+            dataMqtt = ",".join(map(str,[
+                self.bypass_valves()
+            ]))
+            publish.single("Valve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
+                           port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)
+            
             # for setting the current postion of the piston stroke
             self.stroke_position = displacement 
             self.connect_firebase(displacement, v_extension, q, f_extension, power_input, power_output)
@@ -174,9 +194,8 @@ class MainSystem:
             self.signal_flag_dac_bp_ret, 
             self.last_stroke_position
         )
-
         return hs.simulate
-
+    
 def main():
     main_system = MainSystem()
     main_system.run()

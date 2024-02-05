@@ -56,6 +56,7 @@ class HydarulicActuator:
 
             if (displacement > self.stroke_length):
                 displacement = self.stroke_length
+                
             return displacement, q, f_extension, v_extension, power_input, power_output
         
         elif(port_a_flow < port_b_flow and port_a_pressure < port_b_pressure):
@@ -65,9 +66,10 @@ class HydarulicActuator:
             power_input = self.powerInputRet()
             power_output = self.powerOutputRet()
             displacement = self.displacementRet(self.event_time_instant)
-            
+
             if (displacement < 0):
                 displacement  = 0
+                
             return displacement, q, f_retraction, v_retraction, power_input, power_output        
             
     def extensionForce(self):
@@ -85,9 +87,12 @@ class HydarulicActuator:
         if (self.signal_flag_ext):
         # velocity = self.stroke_length / self.simulation_time #just calculating
             velocity = self.flow_rate / (np.pi * (pow(self.bore_diameter/2, 2)))
-            return velocity
+            if (self.current_stroke_position >= 0.6):
+                velocity = 0
         else:
-            return 0
+            velocity = 0
+        
+        return velocity
 
     def powerInputExt(self):
         power_in = self.operating_pressure * self.flow_rate
@@ -117,9 +122,12 @@ class HydarulicActuator:
         if (self.signal_flag_ret):
             velocity = self.flow_rate / ((np.pi * pow(self.bore_diameter/2, 2))-(np.pi * pow(self.rod_diameter/2, 2))) # m/s
             # print("return velocity ---------->", velocity)
-            return velocity
+            if (self.current_stroke_position <= 0):
+                velocity = 0
         else:
-            return 0
+            velocity = 0
+        return velocity
+    
     def powerInputRet(self):
         power_in = self.operating_pressure * self.flow_rate
         return power_in
