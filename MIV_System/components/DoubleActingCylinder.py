@@ -19,8 +19,8 @@ class HydarulicActuator:
             signal_flag_ext,
             signal_flag_ret,
             last_stroke_position
-            ):
-        
+            ):        
+
         self.bore_diameter = bore_diameter
         self.rod_diameter = rod_diameter
         self.stroke_length = stroke_length
@@ -38,6 +38,7 @@ class HydarulicActuator:
         self.signal_flag_ret = signal_flag_ret
         self.position_data = {}
         self.simulate = self.simulate(port)
+
 
     def simulate(self, port):
         # deconstruct and logic for the working of the double acting cylidner
@@ -87,7 +88,7 @@ class HydarulicActuator:
         if (self.signal_flag_ext):
         # velocity = self.stroke_length / self.simulation_time #just calculating
             velocity = self.flow_rate / (np.pi * (pow(self.bore_diameter/2, 2)))
-            if (self.current_stroke_position >= 0.6):
+            if (self.current_stroke_position >= self.stroke_length):
                 velocity = 0
         else:
             velocity = 0
@@ -144,10 +145,10 @@ class HydarulicActuator:
     # calculating the position of th top of the pistion during the extension phase
     def displacementExt(self, time_instant):
         position = self.current_stroke_position
-        print("position ---> ", position)
+        # print("position ---> ", position)
         if ( position >= 0 and position < self.stroke_length):
             if (self.signal_flag_ext):
-                disp = self.last_stroke_position + (self.pistonEfficiencyExt() * time_instant)
+                disp = self.last_stroke_position + (self.pistonVelocityExt() * time_instant)
             else:
                 disp = self.pistonVelocityExt() * time_instant
             return disp

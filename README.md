@@ -1,5 +1,10 @@
 # Hydarulic simulation for Tala Hydro power project
 
 ## MIV logic
-* First need to run the system.py file to run the system.
-* Next run the frontend >> index.js to see the data visualisation
+The system is designed to take in different input parameters from the input side and give the corrospoiding result which is the replica of closre of MIV system in the Tala hydro power plant.
+
+It consist of Four majour system
+*
+*
+*
+*
