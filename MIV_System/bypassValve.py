@@ -1,11 +1,11 @@
 import paho.mqtt.publish as publish
-
 from MIV_System.components.Pump import HydraulicPump
 from MIV_System.components.DirectionControlValve import DirectionControlValve
 from MIV_System.components.DoubleActingCylinder import HydarulicActuator
 
 class BypassValve:
     def  __init__(self, mqtt_subscriber_cmds):
+        print("Starting bypass valve...")
         self.mqtt_subscriber_cmds = mqtt_subscriber_cmds
 
         self.left_solenoid_sig = 0
@@ -113,9 +113,11 @@ class BypassValve:
         dataMqtt = ",".join(map(str,[
             hs.simulate
         ]))
+
+        print("Bypass Data----->", dataMqtt)
         # topic, payload, qos, retain, hostname, port, client_id, keepalive, will, authentication, tls
-        publish.single("Valve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
-                port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)
+        # publish.single("Valve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
+        #         port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)
         
         self.stroke_position = displacement
 
