@@ -1,8 +1,6 @@
 from keyboard import *
 import pyrebase
 import time
-# import paho.mqtt.publish as publish
-# import paho.mqtt.subscribe as subscribe
 from threading import *
 
 from MIV_System.bypassValve import BypassValve
@@ -19,6 +17,13 @@ class MainSystem:
         self.terminating_flag = False
         self.time_counter = 0
         self.event_time = 0
+
+        # <-------------- temporary test logic will be removed later ----------------->
+        self.bpv_flag = 0
+        self.dv_flag = 0
+        self.miv_flag = 0
+        self.ssv_flag = 0
+        # <-------------- temporary test logic will be removed later ----------------->
 
         self.mqtt_sub_bypass = MQTTSubscriber("MQTTCommand")
         self.mqtt_sub_dv = MQTTSubscriber("MQTTCommandDV")
@@ -39,8 +44,39 @@ class MainSystem:
                 
         if e.event_type == KEY_DOWN:
             if e.name.lower() == 'd':
-                self.remove_all_data()        
+                self.remove_all_data()
 
+            # <-------------- temporary test logic will be removed later ----------------->
+            # bypass
+            if e.name.lower() == '1':
+                self.bpv_flag = 1
+
+            if e.name.lower() == '2':
+                self.bpv_flag = 0
+
+            # decompression valve
+            if e.name.lower() == '3':
+                self.dv_flag = 1
+
+            if e.name.lower() == '4':
+                self.dv_flag = 0
+
+            #  MIV valve
+            if e.name.lower() == '5':
+                self.miv_flag = 1
+
+            if e.name.lower() == '6':
+                self.miv_flag = 0
+
+            #  Service seal valve
+            if e.name.lower() == '7':
+                self.ssv_flag = 1
+
+            if e.name.lower() == '8':
+                self.ssv_flag = 0
+
+            # <-------------- temporary test logic will be removed later ----------------->
+                
     # remove the data from firebase
     def remove_all_data(self):
         try:
@@ -53,7 +89,7 @@ class MainSystem:
 
     # Function to start calling the individual components and start running
     def run_sys(self, bpv, dv,ssv,miv):
-        hook(self.key_event)
+        hook(self.on_key_event)
         while not self.terminating_flag:
             # couter_val must support 0.25/2 ........
             # every 1second it will send 64 data
@@ -76,13 +112,20 @@ class MainSystem:
             
     def initialize_valves(self, ValveClass):
         if(str(ValveClass) == "<class 'MIV_System.bypassValve.BypassValve'>"):
-            mqtt = self.mqtt_sub_bypass
+            # mqtt = self.mqtt_sub_bypass
+            mqtt = self.bpv_flag # temp
+
         elif(str(ValveClass) == "<class 'MIV_System.decompressionValve.DecompressionValve'>"):
-            mqtt = self.mqtt_sub_dv
+            # mqtt = self.mqtt_sub_dv
+            mqtt = self.dv_flag # temp
+
         elif(str(ValveClass) == "<class 'MIV_System.MIVValve.MIVValve'>"):
-            mqtt = self.mqtt_sub_miv
+            # mqtt = self.mqtt_sub_miv
+            mqtt = self.miv_flag # temp
+
         elif(str(ValveClass)=="<class 'MIV_System.serviceSealValve.ServiceSealValve'>"):
-            mqtt = self.mqtt_sub_ssv
+            # mqtt = self.mqtt_sub_ssv
+            mqtt  = self.ssv_flag # temp
 
         return ValveClass(
             mqtt,
