@@ -49,31 +49,31 @@ class MainSystem:
             # <-------------- temporary test logic will be removed later ----------------->
             # bypass
             if e.name.lower() == '1':
-                self.bpv_flag = 1
+                self.bpv_flag = '1'
 
             if e.name.lower() == '2':
-                self.bpv_flag = 0
+                self.bpv_flag = '0'
 
             # decompression valve
             if e.name.lower() == '3':
-                self.dv_flag = 1
+                self.dv_flag = '1'
 
             if e.name.lower() == '4':
-                self.dv_flag = 0
+                self.dv_flag = '0'
 
             #  MIV valve
             if e.name.lower() == '5':
-                self.miv_flag = 1
+                self.miv_flag = '1'
 
             if e.name.lower() == '6':
-                self.miv_flag = 0
+                self.miv_flag = '0'
 
             #  Service seal valve
             if e.name.lower() == '7':
-                self.ssv_flag = 1
+                self.ssv_flag = '1'
 
             if e.name.lower() == '8':
-                self.ssv_flag = 0
+                self.ssv_flag = '0'
 
             # <-------------- temporary test logic will be removed later ----------------->
                 
@@ -97,10 +97,10 @@ class MainSystem:
             self.time_counter += counter_val
             self.event_time += counter_val
             
-            bypass_thread = Thread(target=bpv.run, args=(self.time_counter, self.event_time))
-            decompression_thread = Thread(target=dv.run, args=(self.time_counter, self.event_time))
-            service_seal_thread = Thread(target=ssv.run, args=(self.time_counter, self.event_time))
-            miv_thread = Thread(target=miv.run, args=(self.time_counter, self.event_time))
+            bypass_thread = Thread(target=bpv.run, args=(self.time_counter, self.event_time, self.bpv_flag))
+            decompression_thread = Thread(target=dv.run, args=(self.time_counter, self.event_time, self.dv_flag))
+            service_seal_thread = Thread(target=ssv.run, args=(self.time_counter, self.event_time, self.ssv_flag))
+            miv_thread = Thread(target=miv.run, args=(self.time_counter, self.event_time, self.miv_flag))
 
             bypass_thread.start()
             decompression_thread.start()
@@ -112,20 +112,16 @@ class MainSystem:
             
     def initialize_valves(self, ValveClass):
         if(str(ValveClass) == "<class 'MIV_System.bypassValve.BypassValve'>"):
-            # mqtt = self.mqtt_sub_bypass
-            mqtt = self.bpv_flag # temp
+            mqtt = self.mqtt_sub_bypass
 
         elif(str(ValveClass) == "<class 'MIV_System.decompressionValve.DecompressionValve'>"):
-            # mqtt = self.mqtt_sub_dv
-            mqtt = self.dv_flag # temp
+            mqtt = self.mqtt_sub_dv
 
         elif(str(ValveClass) == "<class 'MIV_System.MIVValve.MIVValve'>"):
-            # mqtt = self.mqtt_sub_miv
-            mqtt = self.miv_flag # temp
+            mqtt = self.mqtt_sub_miv
 
         elif(str(ValveClass)=="<class 'MIV_System.serviceSealValve.ServiceSealValve'>"):
-            # mqtt = self.mqtt_sub_ssv
-            mqtt  = self.ssv_flag # temp
+            mqtt = self.mqtt_sub_ssv
 
         return ValveClass(
             mqtt,

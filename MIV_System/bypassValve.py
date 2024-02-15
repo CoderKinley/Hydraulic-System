@@ -24,9 +24,10 @@ class BypassValve:
     def system_time_defination(self):
         self.time_value += 0.0625
 
-    def initialization_values(self, time_counter, event_time):
-        self.received_message = self.mqtt_subscriber_cmds.get_received_message()
-        
+    def initialization_values(self, time_counter, event_time, activation):
+        # self.received_message = self.mqtt_subscriber_cmds.get_received_message()
+        self.received_message = activation
+
         if self.received_message is not None:
             if self.received_message == '1':
                 self.left_solenoid_sig = 1
@@ -49,7 +50,7 @@ class BypassValve:
                     self.time_value = 0
                     self.prev_received_message = self.received_message   
 
-    def run(self, time_counter, event_time):
+    def run(self, time_counter, event_time, activation):
          #test for hydraulic double acting actuator
         bore_diameter = 0.15 # m
         rod_diameter = 0.016 # mcls
@@ -107,7 +108,7 @@ class BypassValve:
             self.signal_flag_dac_bp_ret, 
             self.last_stroke_position
         )
-        self.initialization_values(time_counter, event_time)
+        self.initialization_values(time_counter, event_time, activation)
 
         displacement, q, f_extension, v_extension, power_input, power_output = hs.simulate
                     
