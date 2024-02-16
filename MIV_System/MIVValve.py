@@ -25,9 +25,9 @@ class MIVValve:
         self.time_value += 0.0625
 
     def initialization_values(self, time_counter, event_time, activation):
-        # self.received_message = self.mqtt_subscriber_cmds.get_received_message()
-        self.received_message = activation
-        print("Received ReceivedMessage----->", self.received_message)
+        self.received_message = self.mqtt_subscriber_cmds.get_received_message()
+        # self.received_message = activation
+        # print("Received ReceivedMessage----->", self.received_message)
 
         if self.received_message is not None:
             if self.received_message == '1':
@@ -117,7 +117,7 @@ class MIVValve:
             hs.simulate
         ]))
 
-        print("MIV data----->", dataMqtt)
+        # print("MIV data----->", dataMqtt)
         # topic, payload, qos, retain, hostname, port, client_id, keepalive, will, authentication, tls
         publish.single("MIVValve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
                 port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)

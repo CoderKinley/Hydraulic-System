@@ -24,9 +24,9 @@ class ServiceSealValve:
     def system_time_defination(self):
         self.time_value += 0.0625
 
-    def initialization_values(self, time_counter, event_time, activation):
-        # self.received_message = self.mqtt_subscriber_cmds.get_received_message()
-        self.received_message = activation
+    def initialization_values(self, time_counter, event_time, activation='0'):
+        self.received_message = self.mqtt_subscriber_cmds.get_received_message()
+        # self.received_message = activation
         
         if self.received_message is not None:
             if self.received_message == '1':
@@ -59,8 +59,6 @@ class ServiceSealValve:
             publish.single(topic, payload=data, qos=1, retain=False, hostname=hostname,
                         port=port, client_id=client_id, keepalive=45)
             
-            print("Published data to MQTT Broker.")
-
         except Exception as e:
             print(f"Error publishing data to MQTT Broker: {e}")
 
@@ -130,7 +128,7 @@ class ServiceSealValve:
             hs.simulate
         ]))
 
-        print("Service Seal Data----->", dataMqtt)
+        # print("Service Seal Data----->", dataMqtt)
         self.publish_mqtt("202.144.139.110", 1883, "ServiceSealValve", dataMqtt)
         # topic, payload, qos, retain, hostname, port, client_id, keepalive, will, authentication, tls
         # publish.single("Valve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",

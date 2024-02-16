@@ -44,7 +44,8 @@ class MainSystem:
                 
         if e.event_type == KEY_DOWN:
             if e.name.lower() == 'd':
-                self.remove_all_data()
+                pass
+                # self.remove_all_data()
 
             # <-------------- temporary test logic will be removed later ----------------->
             # bypass
