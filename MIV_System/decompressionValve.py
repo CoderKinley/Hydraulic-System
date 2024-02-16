@@ -118,8 +118,8 @@ class DecompressionValve:
         ]))
         print("Dexompression data----> ", dataMqtt)
         # topic, payload, qos, retain, hostname, port, client_id, keepalive, will, authentication, tls
-        # publish.single("DecompressionValve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
-        #         port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)
+        publish.single("DecompressionValve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
+                port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)
         
         self.stroke_position = displacement
 

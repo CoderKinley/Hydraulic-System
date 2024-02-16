@@ -119,8 +119,8 @@ class MIVValve:
 
         print("MIV data----->", dataMqtt)
         # topic, payload, qos, retain, hostname, port, client_id, keepalive, will, authentication, tls
-        # publish.single("Valve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
-        #         port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)
+        publish.single("MIVValve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
+                port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)
         
         self.stroke_position = displacement
 

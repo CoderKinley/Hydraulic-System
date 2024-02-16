@@ -50,6 +50,20 @@ class ServiceSealValve:
                     self.time_value = 0
                     self.prev_received_message = self.received_message   
 
+    def publish_mqtt(self, hostname, port, topic, data):
+        try:
+            # Use an appropriate client_id for your application
+            client_id = ""
+
+            # Consider using a higher QoS for critical data
+            publish.single(topic, payload=data, qos=1, retain=False, hostname=hostname,
+                        port=port, client_id=client_id, keepalive=45)
+            
+            print("Published data to MQTT Broker.")
+
+        except Exception as e:
+            print(f"Error publishing data to MQTT Broker: {e}")
+
     def run(self, time_counter, event_time, activation):
          #test for hydraulic double acting actuator
         bore_diameter = 0.15 # m
@@ -117,6 +131,7 @@ class ServiceSealValve:
         ]))
 
         print("Service Seal Data----->", dataMqtt)
+        self.publish_mqtt("202.144.139.110", 1883, "ServiceSealValve", dataMqtt)
         # topic, payload, qos, retain, hostname, port, client_id, keepalive, will, authentication, tls
         # publish.single("Valve", payload=dataMqtt, qos=0, retain=False, hostname="202.144.139.110",
         #         port=1883, client_id="", keepalive=45, will=None, auth=None, tls=None)
